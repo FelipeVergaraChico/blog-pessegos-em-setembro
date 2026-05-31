@@ -59,6 +59,9 @@ Rotas previstas:
 - `app/(site)/categorias/[slug]/page.tsx`
 - `app/(site)/busca/page.tsx`
 - `app/(site)/sobre/page.tsx`
+- `app/(site)/not-found.tsx`
+- `app/(site)/error.tsx`
+- `app/(site)/loading.tsx`
 - `app/api/revalidate/route.ts`
 
 Arquivos de suporte previstos:
@@ -71,6 +74,15 @@ Arquivos de suporte previstos:
 - `src/lib/read-time.ts`
 - `src/lib/seo.ts`
 - `src/lib/format-date.ts`
+
+### Variaveis de ambiente
+
+O app Next.js deve declarar e documentar estas variaveis em `.env.example`:
+
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`: ID do projeto Sanity.
+- `NEXT_PUBLIC_SANITY_DATASET`: dataset publico usado pelo blog, por exemplo `production`.
+- `NEXT_PUBLIC_SANITY_API_VERSION`: versao da API Sanity usada pelo client.
+- `SANITY_REVALIDATE_SECRET`: segredo usado para validar chamadas do webhook de revalidacao.
 
 ### Sanity hosted
 
@@ -87,7 +99,7 @@ Como o Studio nao vive neste repo, estes schemas sao contrato de integracao, nao
 
 ## Revalidacao e Cache
 
-O Sanity chamara `POST /api/revalidate` quando documentos forem publicados ou alterados. A rota deve validar a assinatura/segredo do webhook antes de qualquer revalidacao.
+O Sanity chamara `POST /api/revalidate` quando documentos forem publicados, editados, despublicados ou removidos, quando esses eventos forem aplicaveis. A rota deve validar a assinatura/segredo do webhook antes de qualquer revalidacao.
 
 Tags principais:
 
@@ -104,6 +116,8 @@ Comportamento:
 - Alteracoes em `about` revalidam a pagina sobre.
 
 A implementacao deve preferir `revalidateTag(tag, 'max')` para stale-while-revalidate. O endpoint deve retornar `401` para assinatura invalida e nao revalidar nada nesse caso.
+
+Todas as queries publicas devem passar por um wrapper central, por exemplo `sanityFetch`, que aplique tags de cache compativeis com a query. Paginas e componentes nao devem chamar o client Sanity diretamente quando precisarem de cache/revalidacao.
 
 ## Experiencia Visual
 
@@ -159,16 +173,16 @@ Imagens:
 
 ### Publicacao
 
-1. O autor cria ou edita um post no Sanity Studio.
+1. A autora cria ou edita um post no Sanity Studio.
 2. O conteudo permanece como rascunho ate ser publicado pelo Sanity.
-3. Ao publicar ou alterar, o Sanity chama `/api/revalidate`.
+3. Ao publicar, editar, despublicar ou remover conteudo, o Sanity chama `/api/revalidate`.
 4. O Next.js valida o webhook.
 5. O cache das tags relevantes e marcado como stale.
 6. O proximo acesso recebe conteudo atualizado sem rebuild completo da Vercel.
 
 ### Busca
 
-A busca publica em `/busca` deve ser simples no MVP. Ela pode consultar posts publicados por termo em titulo, resumo e conteudo. Nao havera indexador externo no primeiro corte para manter custo zero.
+A busca publica em `/busca` deve ser simples no MVP. Ela deve priorizar posts publicados por termo em titulo, resumo e categoria. Busca refinada no conteudo rich text pode ficar para uma fase posterior. Nao havera indexador externo no primeiro corte para manter custo zero.
 
 ### Newsletter
 
