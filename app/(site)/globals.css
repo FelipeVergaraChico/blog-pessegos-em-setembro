@@ -6,10 +6,27 @@
   color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
+.dark {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
+  background: #f8f2ec;
+  color: #3d2f2a;
+}
+
+.dark body {
+  background: #1c1817;
+  color: #f3ece6;
+}
+
+::selection {
+  background: #e89a7d;
+  color: #3d2f2a;
 }

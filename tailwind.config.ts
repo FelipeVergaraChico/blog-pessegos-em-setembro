@@ -1,12 +1,32 @@
-import type { Config } from 'tailwindcss'
+import type {Config} from 'tailwindcss'
 
 const config: Config = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  darkMode: 'class',
+  content: ['./app/**/*.{ts,tsx}', './src/**/*.{ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        cream: '#F8F2EC',
+        coffee: '#3D2F2A',
+        peach: '#E89A7D',
+        wine: '#6B3E4A',
+        sage: '#7A8B6F',
+        beige: '#D7C8BC',
+        terracotta: '#D87B58',
+        night: '#1C1817',
+        surface: '#2A2422',
+        paper: '#F3ECE6',
+        rosewine: '#B86A7A',
+        nightsage: '#92A887',
+      },
+      fontFamily: {
+        serif: ['var(--font-cormorant)', 'Cormorant Garamond', 'serif'],
+        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        card: '0.5rem',
+      },
+    },
   },
   plugins: [],
 }
