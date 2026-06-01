@@ -6,7 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: '#F8F2EC',
+        cream: '#FFF0DB',
         coffee: '#3D2F2A',
         peach: '#E89A7D',
         wine: '#6B3E4A',
