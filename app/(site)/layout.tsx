@@ -1,5 +1,6 @@
 import type {Metadata} from 'next'
 import {Cormorant_Garamond, Inter} from 'next/font/google'
+import {MobileBottomBar} from '@/src/components/mobile-bottom-bar'
 import {SiteFooter} from '@/src/components/site-footer'
 import {SiteHeader} from '@/src/components/site-header'
 import './globals.css'
@@ -33,8 +34,9 @@ export default function SiteLayout({
     <html lang="pt-BR" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${cormorant.variable} ${inter.variable} font-sans antialiased`}>
         <SiteHeader />
-        <main>{children}</main>
+        <main className="pb-24 md:pb-0">{children}</main>
         <SiteFooter />
+        <MobileBottomBar />
       </body>
     </html>
   )
