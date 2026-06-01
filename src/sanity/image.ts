@@ -1,4 +1,4 @@
-import imageUrlBuilder from '@sanity/image-url'
+import {createImageUrlBuilder} from '@sanity/image-url'
 import {client} from '@/src/sanity/client'
 import type {SanityImage} from '@/src/sanity/types'
 
@@ -7,5 +7,5 @@ export function urlForImage(source?: SanityImage) {
     return null
   }
 
-  return imageUrlBuilder(client).image(source).auto('format').fit('max')
+  return createImageUrlBuilder(client).image(source).auto('format').fit('max')
 }
