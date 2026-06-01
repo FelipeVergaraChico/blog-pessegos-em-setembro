@@ -1,7 +1,21 @@
 import {PortableContent} from '@/src/components/portable-content'
+import {buildMetadata} from '@/src/lib/seo'
 import {sanityFetch} from '@/src/sanity/client'
 import {aboutQuery, cacheTags, settingsQuery} from '@/src/sanity/queries'
 import type {AboutPage, Settings} from '@/src/sanity/types'
+
+export async function generateMetadata() {
+  const [about, settings] = await Promise.all([
+    sanityFetch<AboutPage | null>({query: aboutQuery, tags: [cacheTags.about], fallback: null}),
+    sanityFetch<Settings | null>({query: settingsQuery, tags: [cacheTags.settings], fallback: null}),
+  ])
+
+  return buildMetadata({
+    title: about?.seo?.title || about?.title || 'Sobre',
+    description: about?.seo?.description || settings?.description,
+    seo: about?.seo || settings?.seo,
+  })
+}
 
 export default async function AboutPageRoute() {
   const [about, settings] = await Promise.all([

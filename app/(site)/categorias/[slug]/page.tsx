@@ -1,11 +1,27 @@
 import {notFound} from 'next/navigation'
 import {PostCard} from '@/src/components/post-card'
+import {buildMetadata} from '@/src/lib/seo'
 import {sanityFetch} from '@/src/sanity/client'
 import {cacheTags, categoryBySlugQuery, postsByCategoryQuery} from '@/src/sanity/queries'
 import type {Category, Post} from '@/src/sanity/types'
 
 type CategoryPageProps = {
   params: Promise<{slug: string}>
+}
+
+export async function generateMetadata({params}: CategoryPageProps) {
+  const {slug} = await params
+  const category = await sanityFetch<Category | null>({
+    query: categoryBySlugQuery,
+    params: {slug},
+    tags: [cacheTags.category],
+    fallback: null,
+  })
+
+  return buildMetadata({
+    title: category?.title || 'Categoria',
+    description: category?.description,
+  })
 }
 
 export default async function CategoryPage({params}: CategoryPageProps) {

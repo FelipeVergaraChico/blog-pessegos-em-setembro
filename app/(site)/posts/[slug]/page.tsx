@@ -3,6 +3,7 @@ import {ImageFrame} from '@/src/components/image-frame'
 import {PortableContent} from '@/src/components/portable-content'
 import {formatDate} from '@/src/lib/format-date'
 import {readingTime} from '@/src/lib/read-time'
+import {buildMetadata} from '@/src/lib/seo'
 import {sanityFetch} from '@/src/sanity/client'
 import {cacheTags, postBySlugQuery} from '@/src/sanity/queries'
 import type {Post} from '@/src/sanity/types'
@@ -22,6 +23,22 @@ function portableTextToPlainText(blocks: unknown[] = []) {
       return ''
     })
     .join(' ')
+}
+
+export async function generateMetadata({params}: PostPageProps) {
+  const {slug} = await params
+  const post = await sanityFetch<Post | null>({
+    query: postBySlugQuery,
+    params: {slug},
+    tags: [cacheTags.post],
+    fallback: null,
+  })
+
+  if (!post) {
+    return buildMetadata({title: 'Texto nao encontrado'})
+  }
+
+  return buildMetadata({title: post.title, description: post.excerpt, seo: post.seo})
 }
 
 export default async function PostPage({params}: PostPageProps) {
