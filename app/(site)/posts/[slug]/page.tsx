@@ -12,7 +12,11 @@ type PostPageProps = {
   params: Promise<{slug: string}>
 }
 
-function portableTextToPlainText(blocks: unknown[] = []) {
+export function portableTextToPlainText(blocks: unknown) {
+  if (!Array.isArray(blocks)) {
+    return ''
+  }
+
   return blocks
     .map((block) => {
       if (typeof block === 'object' && block && 'children' in block) {

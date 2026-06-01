@@ -1,4 +1,4 @@
-import {createClient, type QueryParams} from 'next-sanity'
+import {createClient, type QueryParams} from '@sanity/client'
 
 export const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2026-05-31'
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID

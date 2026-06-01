@@ -1,6 +1,7 @@
 import {sanityFetch} from '@/src/sanity/client'
 import {cacheTags, settingsQuery} from '@/src/sanity/queries'
 import type {Settings} from '@/src/sanity/types'
+import {safeHref} from '@/src/lib/safe-url'
 
 export async function SiteFooter() {
   const settings = await sanityFetch<Settings | null>({
@@ -8,7 +9,10 @@ export async function SiteFooter() {
     tags: [cacheTags.settings],
     fallback: null,
   })
-  const socialLinks = settings?.socialLinks?.filter((link) => link.label && link.href) || []
+  const socialLinks =
+    settings?.socialLinks
+      ?.map((link) => ({...link, href: safeHref(link.href)}))
+      .filter((link): link is {label: string; href: string} => Boolean(link.label && link.href)) || []
 
   return (
     <footer className="border-t border-beige/70 bg-cream dark:border-paper/10 dark:bg-night">

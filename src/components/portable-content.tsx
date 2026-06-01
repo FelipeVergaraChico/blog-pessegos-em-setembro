@@ -1,5 +1,6 @@
 import {PortableText, type PortableTextComponents} from '@portabletext/react'
-import type {PortableTextBlock} from 'next-sanity'
+import type {PortableTextBlock} from '@portabletext/types'
+import {safeHref} from '@/src/lib/safe-url'
 import type {SanityImage} from '@/src/sanity/types'
 import {ImageFrame} from './image-frame'
 
@@ -19,11 +20,19 @@ const components: PortableTextComponents = {
     ),
   },
   marks: {
-    link: ({children, value}) => (
-      <a href={value?.href} className="text-wine underline decoration-peach underline-offset-4 dark:text-peach">
-        {children}
-      </a>
-    ),
+    link: ({children, value}) => {
+      const href = safeHref(value?.href)
+
+      if (!href) {
+        return <span>{children}</span>
+      }
+
+      return (
+        <a href={href} className="text-wine underline decoration-peach underline-offset-4 dark:text-peach">
+          {children}
+        </a>
+      )
+    },
   },
   types: {
     image: ({value}) => <ImageFrame image={value as SanityImage} className="my-8 aspect-[16/10] w-full" />,
