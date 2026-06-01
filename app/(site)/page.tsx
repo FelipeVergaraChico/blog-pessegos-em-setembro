@@ -1,6 +1,5 @@
 import {EditorialSidebar} from '@/src/components/editorial-sidebar'
 import {FeaturedPost} from '@/src/components/featured-post'
-import {NewsletterBlock} from '@/src/components/newsletter-block'
 import {PostCard} from '@/src/components/post-card'
 import {sanityFetch} from '@/src/sanity/client'
 import {
@@ -51,10 +50,7 @@ export default async function Home() {
           )}
         </div>
 
-        <div className="grid gap-6">
-          <EditorialSidebar posts={recentPosts} categories={categories} settings={settings} />
-          {!settings ? <NewsletterBlock /> : null}
-        </div>
+        <EditorialSidebar posts={recentPosts} categories={categories} settings={settings} />
       </section>
     </div>
   )

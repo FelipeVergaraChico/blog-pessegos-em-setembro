@@ -30,7 +30,7 @@ export default function SiteLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${cormorant.variable} ${inter.variable} font-sans antialiased`}>
         <SiteHeader />
         <main>{children}</main>
