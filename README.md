@@ -160,23 +160,24 @@ A aplicação usa cache por tags do Next:
 | `settings` | Footer, sidebar e dados editoriais globais. |
 | `about` | Página sobre. |
 
-O endpoint `POST /api/revalidate` recebe payloads de webhook do Sanity e chama `revalidateTag(tag, 'max')` para as tags afetadas.
+O endpoint `POST /api/revalidate` recebe payloads de webhook do Sanity, valida a assinatura oficial gerada a partir do campo **Secret** do webhook e chama `revalidateTag(tag, 'max')` para as tags afetadas.
 
-O segredo deve ser enviado apenas no header:
+No Sanity, configure o webhook com:
 
-```http
-x-sanity-revalidate-secret: <SANITY_REVALIDATE_SECRET>
-```
+- URL: `https://seu-dominio.com/api/revalidate`
+- Method: `POST`
+- Secret: mesmo valor de `SANITY_REVALIDATE_SECRET`
+- Trigger/projection conforme os documentos que devem revalidar o site
 
-Segredo por query string não é aceito.
+O app valida o header oficial `sanity-webhook-signature` usando `@sanity/webhook`. O segredo bruto não deve ser enviado por query string nem por header customizado.
 
-Exemplo local:
+Exemplo de payload esperado após a assinatura ser validada:
 
-```bash
-curl -X POST http://localhost:3000/api/revalidate \
-  -H "content-type: application/json" \
-  -H "x-sanity-revalidate-secret: $SANITY_REVALIDATE_SECRET" \
-  -d '{"_type":"post","operation":"update"}'
+```json
+{
+  "_type": "post",
+  "operation": "update"
+}
 ```
 
 ## Segurança
@@ -184,7 +185,8 @@ curl -X POST http://localhost:3000/api/revalidate \
 Medidas implementadas:
 
 - `SANITY_REVALIDATE_SECRET` obrigatório para revalidação.
-- Webhook autenticado apenas por header, não por query string.
+- Webhook autenticado por assinatura oficial do Sanity.
+- O segredo bruto nunca é aceito por query string ou header customizado.
 - Links vindos do CMS passam por `safeHref`.
 - Protocolos perigosos como `javascript:`, `data:` e `vbscript:` são rejeitados.
 - Links inválidos de Portable Text são renderizados como texto, não como `<a>`.
@@ -302,7 +304,7 @@ Checklist de deploy:
 1. Configurar variáveis de ambiente na Vercel.
 2. Garantir que o dataset do Sanity esteja público ou acessível conforme o modo de consumo.
 3. Configurar webhook no Sanity para `POST /api/revalidate`.
-4. Enviar o header `x-sanity-revalidate-secret`.
+4. Preencher o campo **Secret** do webhook com `SANITY_REVALIDATE_SECRET`.
 5. Rodar `npm run build` antes do deploy quando possível.
 
 ## Estrutura de pastas
@@ -354,8 +356,9 @@ Esse caso ocorre quando o Sanity retorna `body: null`. A função de leitura de 
 Verifique:
 
 - `SANITY_REVALIDATE_SECRET` configurado no ambiente.
-- Header `x-sanity-revalidate-secret` enviado pelo Sanity.
-- O segredo não deve ser enviado via query string.
+- Campo **Secret** configurado no webhook do Sanity.
+- Header `sanity-webhook-signature` presente na requisição.
+- O segredo bruto não deve ser enviado via query string nem por header manual.
 
 ### Imagens não aparecem
 

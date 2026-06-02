@@ -1,44 +1,84 @@
 import {NextRequest} from 'next/server'
 import {afterEach, describe, expect, it, vi} from 'vitest'
-import {POST} from './route'
 
-const revalidateTag = vi.fn()
+const {revalidateTag, isValidSignature} = vi.hoisted(() => ({
+  revalidateTag: vi.fn(),
+  isValidSignature: vi.fn(),
+}))
 
 vi.mock('next/cache', () => ({
   revalidateTag: (...args: unknown[]) => revalidateTag(...args),
 }))
 
-function request(url: string, headers: HeadersInit = {}) {
+vi.mock('@sanity/webhook', () => ({
+  SIGNATURE_HEADER_NAME: 'sanity-webhook-signature',
+  isValidSignature: (...args: unknown[]) => isValidSignature(...args),
+}))
+
+function request(url: string, headers: HeadersInit = {}, body = JSON.stringify({_type: 'post'})) {
   return new NextRequest(url, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       ...headers,
     },
-    body: JSON.stringify({_type: 'post'}),
+    body,
   })
+}
+
+async function post(request: NextRequest) {
+  const {POST} = await import('./route')
+  return POST(request)
 }
 
 describe('POST /api/revalidate', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
     revalidateTag.mockClear()
+    isValidSignature.mockReset()
   })
 
-  it('rejects secrets sent in the query string', async () => {
+  it('rejects requests when the Sanity signature header is missing', async () => {
     vi.stubEnv('SANITY_REVALIDATE_SECRET', 'test-secret')
 
-    const response = await POST(request('http://localhost/api/revalidate?secret=test-secret'))
+    const response = await post(request('http://localhost/api/revalidate?secret=test-secret'))
 
     expect(response.status).toBe(401)
+    expect(isValidSignature).not.toHaveBeenCalled()
     expect(revalidateTag).not.toHaveBeenCalled()
   })
 
-  it('accepts the revalidation secret from the Sanity header', async () => {
+  it('rejects invalid Sanity signatures', async () => {
     vi.stubEnv('SANITY_REVALIDATE_SECRET', 'test-secret')
+    isValidSignature.mockResolvedValue(false)
 
-    const response = await POST(
-      request('http://localhost/api/revalidate', {'x-sanity-revalidate-secret': 'test-secret'}),
+    const response = await post(
+      request('http://localhost/api/revalidate', {'sanity-webhook-signature': 'invalid-signature'}),
+    )
+
+    expect(response.status).toBe(401)
+    expect(isValidSignature).toHaveBeenCalledWith(JSON.stringify({_type: 'post'}), 'invalid-signature', 'test-secret')
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it('rejects invalid JSON after validating the signature', async () => {
+    vi.stubEnv('SANITY_REVALIDATE_SECRET', 'test-secret')
+    isValidSignature.mockResolvedValue(true)
+
+    const response = await post(
+      request('http://localhost/api/revalidate', {'sanity-webhook-signature': 'valid-signature'}, '{'),
+    )
+
+    expect(response.status).toBe(400)
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it('accepts valid Sanity webhook signatures', async () => {
+    vi.stubEnv('SANITY_REVALIDATE_SECRET', 'test-secret')
+    isValidSignature.mockResolvedValue(true)
+
+    const response = await post(
+      request('http://localhost/api/revalidate', {'sanity-webhook-signature': 'valid-signature'}),
     )
 
     expect(response.status).toBe(200)

@@ -1,15 +1,35 @@
 import {revalidateTag} from 'next/cache'
 import type {NextRequest} from 'next/server'
+import {isValidSignature, SIGNATURE_HEADER_NAME} from '@sanity/webhook'
 import {tagsForWebhookPayload, type SanityWebhookPayload} from '@/src/lib/revalidate'
 
 export async function POST(request: NextRequest) {
-  const secret = request.headers.get('x-sanity-revalidate-secret')
+  const secret = process.env.SANITY_REVALIDATE_SECRET
 
-  if (!process.env.SANITY_REVALIDATE_SECRET || secret !== process.env.SANITY_REVALIDATE_SECRET) {
-    return Response.json({revalidated: false, message: 'Invalid secret'}, {status: 401})
+  if (!secret) {
+    return Response.json({revalidated: false, message: 'Missing SANITY_REVALIDATE_SECRET'}, {status: 500})
   }
 
-  const payload = (await request.json().catch(() => null)) as SanityWebhookPayload | null
+  const body = await request.text()
+  const signature = request.headers.get(SIGNATURE_HEADER_NAME)
+
+  if (!signature) {
+    return Response.json({revalidated: false, message: 'Missing Sanity signature'}, {status: 401})
+  }
+
+  const isValid = await isValidSignature(body, signature, secret)
+
+  if (!isValid) {
+    return Response.json({revalidated: false, message: 'Invalid Sanity signature'}, {status: 401})
+  }
+
+  const payload = (() => {
+    try {
+      return JSON.parse(body || 'null') as SanityWebhookPayload | null
+    } catch {
+      return null
+    }
+  })()
 
   if (!payload?._type) {
     return Response.json({revalidated: false, message: 'Missing document type'}, {status: 400})
