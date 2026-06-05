@@ -1,6 +1,6 @@
 export function NewsletterBlock({text}: {text?: string}) {
   return (
-    <section className="rounded-card border border-beige/70 bg-peach/15 p-5 dark:border-paper/10 dark:bg-surface">
+    <section className="rounded-card border border-beige/70 p-5 dark:border-paper/10">
       <p className="text-xs uppercase tracking-[0.18em] text-wine dark:text-peach">Carta mensal</p>
       <h2 className="mt-3 font-serif text-3xl leading-none text-coffee dark:text-paper">
         Uma newsletter esta a caminho.
